@@ -40,7 +40,7 @@ if(curl_errno($curl))
 }
 
 $array = json_decode($data, true);
-if(!isset($array['response']['players'][0]['communityvisibilitystate']) || $array['response']['players'][0]['communityvisibilitystate'] != 3)
+if($array['response']['players'][0]['profilestate'] != 1 || $array['response']['players'][0]['communityvisibilitystate'] != 3)
 {
 	echo 'Private Profiles';
 	die(200);

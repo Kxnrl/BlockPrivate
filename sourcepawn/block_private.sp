@@ -44,6 +44,11 @@ public void OnPluginStart()
     g_smWihteList = new StringMap();
 }
 
+public void OnMapStart()
+{
+    g_smWihteList.Clear();
+}
+
 public void OnClientAuthorized(int client, const char[] auth)
 {
     if(IsFakeClient(client) || IsClientSourceTV(client))
@@ -66,7 +71,7 @@ public void OnClientAuthorized(int client, const char[] auth)
         return;
 
     char url[192];
-    FormatEx(url, 192, "https://csgogamers.com/check.php?steam=%d", steamid);
+    FormatEx(url, 192, "https://csgogamers.com/check.php?steam=%s", steamid);
     System2_GetPage(CheckClient, url, "", "Half Life 2", userid);
 }
 
@@ -82,6 +87,8 @@ public void CheckClient(const char[] output, const int size, CMDReturn status, i
         LogError("CheckClient -> %L -> status code [%d]", client, view_as<int>(status));
         return;
     }
+
+    LogEx("\"%L\" -> output[%s] size[%d]", client, output, size);
     
     if(StrContains(output, "curl error", false) == 0)
     {
@@ -99,14 +106,15 @@ public void CheckClient(const char[] output, const int size, CMDReturn status, i
     
     DataPack pack = new DataPack();
     pack.WriteCell(userid);
-    pack.WriteCell(size);
 
     if(strcmp(output, "Private Profiles") == 0)
     {
+        pack.WriteCell(128);
         pack.WriteString("您的Steam个人资料是私密的\n请先设置为公开");
     }
     else
     {
+        pack.WriteCell(size+64);
         pack.WriteString(output);
     }
 
@@ -149,4 +157,11 @@ static bool CheckWhiteList(const char[] steamid)
     }
     
     return true;
+}
+
+static void LogEx(const char[] buf, any ...)
+{
+    char vf[512];
+    VFormat(vf, 512, buf, 2);
+    LogToFileEx("addons/sourcemod/logs/block.private.log", vf);
 }
